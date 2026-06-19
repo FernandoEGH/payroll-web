@@ -1,0 +1,29 @@
+{
+  "inss": {
+    "2024": [
+      { "faixa": 1, "limiteInferior": 0, "limiteSuperior": 1412.00, "aliquota": 0.075, "deducao": 0 },
+      { "faixa": 2, "limiteInferior": 1412.01, "limiteSuperior": 2666.68, "aliquota": 0.09, "deducao": 21.18 },
+      { "faixa": 3, "limiteInferior": 2666.69, "limiteSuperior": 4000.03, "aliquota": 0.12, "deducao": 101.18 },
+      { "faixa": 4, "limiteInferior": 4000.04, "limiteSuperior": 7786.02, "aliquota": 0.14, "deducao": 181.18 },
+      { "faixa": 5, "limiteInferior": 7786.03, "limiteSuperior": 999999, "aliquota": 0.14, "deducao": 181.18 }
+    ],
+    "2023": [
+      { "faixa": 1, "limiteInferior": 0, "limiteSuperior": 1320.00, "aliquota": 0.075, "deducao": 0 },
+      { "faixa": 2, "limiteInferior": 1320.01, "limiteSuperior": 2571.29, "aliquota": 0.09, "deducao": 19.80 },
+      { "faixa": 3, "limiteInferior": 2571.30, "limiteSuperior": 3856.94, "aliquota": 0.12, "deducao": 96.94 },
+      { "faixa": 4, "limiteInferior": 3856.95, "limiteSuperior": 7507.49, "aliquota": 0.14, "deducao": 174.08 },
+      { "faixa": 5, "limiteInferior": 7507.50, "limiteSuperior": 999999, "aliquota": 0.14, "deducao": 174.08 }
+    ]
+  },
+  "irrf": {
+    "2024": [
+      { "faixa": 1, "limiteInferior": 0, "limiteSuperior": 2259.20, "aliquota": 0, "deducao": 0, "deducaoDependente": 189.59 },
+      { "faixa": 2, "limiteInferior": 2259.21, "limiteSuperior": 2826.65, "aliquota": 0.075, "deducao": 169.44, "deducaoDependente": 189.59 },
+      { "faixa": 3, "limiteInferior": 2826.66, "limiteSuperior": 3751.05, "aliquota": 0.15, "deducao": 381.44, "deducaoDependente": 189.59 },
+      { "faixa": 4, "limiteInferior": 3751.06, "limiteSuperior": 4664.68, "aliquota": 0.225, "deducao": 662.77, "deducaoDependente": 189.59 },
+      { "faixa": 5, "limiteInferior": 4664.69, "limiteSuperior": 999999, "aliquota": 0.275, "deducao": 896.00, "deducaoDependente": 189.59 }
+    ]
+  },
+  "fgts": { "2024": 0.08, "2023": 0.08 },
+  "salarioMinimo": { "2024": 1412.00, "2023": 1320.00 }
+}
