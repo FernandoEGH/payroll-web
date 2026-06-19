@@ -1,23 +1,2468 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Folha de Pagamento - Sistema de Holerites</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PayFlow · Folha de Pagamento</title>
+
+    <!-- bibliotecas para exportação -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+    </script>
+
+    <!-- Google Fonts (Inter) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ============================================
+               DESIGN SYSTEM & VARIÁVEIS
+            ============================================ */
+        :root {
+            --font: 'Inter', system-ui, -apple-system, sans-serif;
+
+            /* Cores primárias */
+            --primary-50: #eef2ff;
+            --primary-100: #e0e7ff;
+            --primary-200: #c7d2fe;
+            --primary-300: #a5b4fc;
+            --primary-400: #818cf8;
+            --primary-500: #6366f1;
+            --primary-600: #4f46e5;
+            --primary-700: #4338ca;
+            --primary-800: #3730a3;
+            --primary-900: #312e81;
+
+            /* Neutras */
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+
+            /* Semânticas */
+            --success: #22c55e;
+            --success-bg: #dcfce7;
+            --danger: #ef4444;
+            --danger-bg: #fee2e2;
+            --warning: #f59e0b;
+            --warning-bg: #fef3c7;
+            --info: #3b82f6;
+            --info-bg: #dbeafe;
+
+            /* Tema claro (padrão) */
+            --bg-body: var(--gray-50);
+            --bg-surface: #ffffff;
+            --bg-surface-hover: var(--gray-100);
+            --bg-elevated: #ffffff;
+            --bg-input: #ffffff;
+
+            --text-primary: var(--gray-900);
+            --text-secondary: var(--gray-600);
+            --text-muted: var(--gray-400);
+            --text-inverse: #ffffff;
+
+            --border-color: var(--gray-200);
+            --border-radius: 12px;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.08);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.10);
+
+            --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --radius-sm: 6px;
+            --radius: var(--border-radius);
+            --radius-lg: 16px;
+        }
+
+        /* Tema escuro */
+        [data-theme="dark"] {
+            --bg-body: var(--gray-900);
+            --bg-surface: var(--gray-800);
+            --bg-surface-hover: var(--gray-700);
+            --bg-elevated: var(--gray-800);
+            --bg-input: var(--gray-700);
+
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #64748b;
+            --text-inverse: #0f172a;
+
+            --border-color: var(--gray-700);
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.5);
+            --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        /* ============================================
+               RESET & BASE
+            ============================================ */
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 16px;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-body);
+            color: var(--text-primary);
+            transition: background var(--transition), color var(--transition);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a {
+            color: var(--primary-600);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--primary-700);
+        }
+
+        /* ============================================
+               SCROLLBAR
+            ============================================ */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-surface);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray-300);
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--gray-400);
+        }
+
+        /* ============================================
+               LAYOUT PRINCIPAL
+            ============================================ */
+        #app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* ---- TOPBAR ---- */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 1.5rem;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(8px);
+            transition: background var(--transition), border var(--transition);
+        }
+
+        .topbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1.2rem;
+            letter-spacing: -0.02em;
+            color: var(--text-primary);
+        }
+        .topbar-brand .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-700));
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .topbar-actions .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: background var(--transition), color var(--transition);
+        }
+        .topbar-actions .btn-icon:hover {
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+        .topbar-actions .btn-icon .badge {
+            position: relative;
+            top: -4px;
+            right: 4px;
+            background: var(--danger);
+            color: #fff;
+            font-size: 0.6rem;
+            border-radius: 50%;
+            padding: 0 5px;
+            font-weight: 600;
+            line-height: 1.4;
+            min-width: 18px;
+            text-align: center;
+        }
+
+        /* ---- SIDEBAR ---- */
+        .sidebar {
+            position: fixed;
+            top: 68px;
+            left: 0;
+            bottom: 0;
+            width: 220px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border-color);
+            padding: 1rem 0.75rem;
+            overflow-y: auto;
+            transition: transform var(--transition), background var(--transition), border var(--transition);
+            z-index: 40;
+        }
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        .sidebar-nav .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all var(--transition);
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+        .sidebar-nav .nav-item:hover {
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+        .sidebar-nav .nav-item.active {
+            background: var(--primary-50);
+            color: var(--primary-700);
+        }
+        [data-theme="dark"] .sidebar-nav .nav-item.active {
+            background: var(--primary-900);
+            color: var(--primary-200);
+        }
+        .sidebar-nav .nav-item .nav-icon {
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+        }
+        .sidebar-nav .nav-divider {
+            height: 1px;
+            background: var(--border-color);
+            margin: 0.5rem 0;
+        }
+
+        /* ---- CONTEÚDO ---- */
+        .main-content {
+            margin-left: 220px;
+            margin-top: 68px;
+            padding: 2rem 2rem 4rem;
+            flex: 1;
+            transition: margin var(--transition);
+        }
+
+        /* ---- RESPONSIVIDADE SIDEBAR ---- */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+                padding: 1.5rem 1rem;
+            }
+            .topbar {
+                padding: 0 1rem;
+            }
+            .topbar .menu-toggle {
+                display: flex !important;
+            }
+        }
+        .topbar .menu-toggle {
+            display: none;
+        }
+
+        /* ============================================
+               CARD / SUPERFÍCIES
+            ============================================ */
+        .card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-sm);
+            padding: 1.5rem;
+            transition: background var(--transition), border var(--transition), box-shadow var(--transition);
+        }
+        .card:hover {
+            box-shadow: var(--shadow);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+        .card-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .card-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+               GRID
+            ============================================ */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .grid-4 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 768px) {
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            .grid-4 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ============================================
+               FORMULÁRIOS
+            ============================================ */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .form-group .form-control {
+            width: 100%;
+            padding: 0.6rem 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: border var(--transition), box-shadow var(--transition);
+            font-family: var(--font);
+        }
+        .form-group .form-control:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+        }
+        .form-group .form-control::placeholder {
+            color: var(--text-muted);
+        }
+        .form-group .form-control[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .form-group .form-control[type="number"]::-webkit-outer-spin-button,
+        .form-group .form-control[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+        .form-group .form-hint {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+        .form-group .form-check {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.3rem;
+        }
+        .form-group .form-check input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--primary-500);
+        }
+
+        /* ============================================
+               BOTÕES
+            ============================================ */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1.2rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.875rem;
+            font-family: var(--font);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: var(--primary-600);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-700);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        .btn-secondary {
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
+            border-color: var(--border-color);
+        }
+        .btn-secondary:hover {
+            background: var(--gray-200);
+            border-color: var(--gray-300);
+        }
+        [data-theme="dark"] .btn-secondary:hover {
+            background: var(--gray-700);
+            border-color: var(--gray-600);
+        }
+        .btn-success {
+            background: var(--success);
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #16a34a;
+        }
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .btn-outline {
+            background: transparent;
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+        }
+        .btn-outline:hover {
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+        .btn-sm {
+            padding: 0.3rem 0.8rem;
+            font-size: 0.8rem;
+        }
+        .btn-icon-only {
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 50%;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* ============================================
+               TABELAS
+            ============================================ */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 1rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+        table th,
+        table td {
+            padding: 0.7rem 0.8rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        table th {
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        table tr:hover td {
+            background: var(--bg-surface-hover);
+        }
+        table .actions {
+            display: flex;
+            gap: 0.3rem;
+        }
+        .table-empty {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+        }
+
+        /* ============================================
+               HOLERITE (visualização impressa)
+            ============================================ */
+        .holerite-preview {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .holerite-preview .h-header {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .holerite-preview .h-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.2rem 0;
+        }
+        .holerite-preview .h-proventos {
+            color: var(--success);
+        }
+        .holerite-preview .h-descontos {
+            color: var(--danger);
+        }
+        .holerite-preview .h-total {
+            font-weight: 700;
+            font-size: 1.2rem;
+            border-top: 2px solid var(--border-color);
+            padding-top: 0.8rem;
+            margin-top: 0.8rem;
+        }
+        .holerite-preview .h-fgts {
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        /* ============================================
+               TOAST NOTIFICATIONS
+            ============================================ */
+        .toast-container {
+            position: fixed;
+            top: 80px;
+            right: 1.5rem;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-width: 380px;
+            width: 100%;
+            pointer-events: none;
+        }
+        .toast {
+            pointer-events: auto;
+            padding: 0.8rem 1.2rem;
+            border-radius: var(--radius-sm);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            animation: slideIn 0.3s ease;
+            transform-origin: top right;
+        }
+        .toast-success {
+            border-left: 4px solid var(--success);
+        }
+        .toast-error {
+            border-left: 4px solid var(--danger);
+        }
+        .toast-warning {
+            border-left: 4px solid var(--warning);
+        }
+        .toast-info {
+            border-left: 4px solid var(--info);
+        }
+        .toast .toast-close {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 0 0.2rem;
+        }
+        .toast .toast-close:hover {
+            color: var(--text-primary);
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        /* ============================================
+               MODAL
+            ============================================ */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            padding: 1.5rem;
+            animation: fadeIn 0.25s ease;
+        }
+        .modal {
+            background: var(--bg-surface);
+            border-radius: var(--radius-lg);
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 2rem;
+            box-shadow: var(--shadow-xl);
+            animation: scaleIn 0.3s ease;
+        }
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        .modal-header h3 {
+            font-weight: 600;
+        }
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: color var(--transition);
+        }
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.92) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* ============================================
+               STATS CARDS
+            ============================================ */
+        .stat-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 1.2rem 1.5rem;
+            transition: all var(--transition);
+        }
+        .stat-card .stat-label {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-top: 0.2rem;
+            line-height: 1.2;
+        }
+        .stat-card .stat-change {
+            font-size: 0.75rem;
+            margin-top: 0.3rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.2rem;
+        }
+        .stat-card .stat-change.positive {
+            color: var(--success);
+        }
+        .stat-card .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* ============================================
+               GRÁFICO SIMPLES (barras)
+            ============================================ */
+        .chart-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.4rem;
+            height: 140px;
+            padding: 0.5rem 0;
+        }
+        .chart-bars .bar {
+            flex: 1;
+            background: var(--primary-400);
+            border-radius: 4px 4px 0 0;
+            min-height: 4px;
+            transition: height 0.6s ease, background var(--transition);
+            position: relative;
+        }
+        .chart-bars .bar:hover {
+            background: var(--primary-600);
+        }
+        .chart-bars .bar-label {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 0.3rem;
+        }
+        .chart-bars .bar-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+        }
+        .chart-bars .bar-value {
+            font-size: 0.65rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.2rem;
+        }
+
+        /* ============================================
+               SKELETON LOADING
+            ============================================ */
+        .skeleton {
+            background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-300) 50%, var(--gray-200) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: var(--radius-sm);
+        }
+        [data-theme="dark"] .skeleton {
+            background: linear-gradient(90deg, var(--gray-700) 25%, var(--gray-600) 50%, var(--gray-700) 75%);
+            background-size: 200% 100%;
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* ============================================
+               UTILITÁRIOS
+            ============================================ */
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .flex-col {
+            flex-direction: column;
+        }
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+        .gap-1 {
+            gap: 0.5rem;
+        }
+        .gap-2 {
+            gap: 1rem;
+        }
+        .gap-3 {
+            gap: 1.5rem;
+        }
+        .mt-1 {
+            margin-top: 0.5rem;
+        }
+        .mt-2 {
+            margin-top: 1rem;
+        }
+        .mt-3 {
+            margin-top: 1.5rem;
+        }
+        .mt-4 {
+            margin-top: 2rem;
+        }
+        .mb-2 {
+            margin-bottom: 1rem;
+        }
+        .mb-3 {
+            margin-bottom: 1.5rem;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .text-muted {
+            color: var(--text-muted);
+        }
+        .text-success {
+            color: var(--success);
+        }
+        .text-danger {
+            color: var(--danger);
+        }
+        .w-full {
+            width: 100%;
+        }
+        .justify-between {
+            justify-content: space-between;
+        }
+        .items-center {
+            align-items: center;
+        }
+        .hidden {
+            display: none !important;
+        }
+
+        /* ============================================
+               RESPONSIVIDADE GERAL
+            ============================================ */
+        @media (max-width: 480px) {
+            .topbar-brand span {
+                display: none;
+            }
+            .modal {
+                padding: 1.2rem;
+            }
+            .holerite-preview {
+                padding: 1rem;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* ============================================
+               CONFIGURAÇÕES (textarea)
+            ============================================ */
+        .json-editor {
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8rem;
+            padding: 0.8rem;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            width: 100%;
+            min-height: 280px;
+            resize: vertical;
+            transition: border var(--transition);
+        }
+        .json-editor:focus {
+            outline: none;
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+        }
+
+        /* ============================================
+               BADGE / TAG
+            ============================================ */
+        .badge {
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-success {
+            background: var(--success-bg);
+            color: var(--success);
+        }
+        .badge-danger {
+            background: var(--danger-bg);
+            color: var(--danger);
+        }
+        .badge-warning {
+            background: var(--warning-bg);
+            color: var(--warning);
+        }
+        .badge-info {
+            background: var(--info-bg);
+            color: var(--info);
+        }
+
+        /* ============================================
+               SEARCH / FILTER
+            ============================================ */
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-input);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.1rem 0.6rem;
+            transition: border var(--transition), box-shadow var(--transition);
+        }
+        .search-box:focus-within {
+            border-color: var(--primary-400);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.10);
+        }
+        .search-box input {
+            border: none;
+            background: transparent;
+            padding: 0.45rem 0;
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            width: 100%;
+            outline: none;
+        }
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+        .search-box .search-icon {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* ============================================
+               TABS (navegação secundária)
+            ============================================ */
+        .tabs {
+            display: flex;
+            gap: 0.25rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .tabs .tab {
+            padding: 0.4rem 1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition);
+            border: none;
+            background: transparent;
+        }
+        .tabs .tab:hover {
+            background: var(--bg-surface-hover);
+            color: var(--text-primary);
+        }
+        .tabs .tab.active {
+            background: var(--primary-50);
+            color: var(--primary-700);
+        }
+        [data-theme="dark"] .tabs .tab.active {
+            background: var(--primary-900);
+            color: var(--primary-200);
+        }
+
+        /* ============================================
+               EMPTY STATE
+            ============================================ */
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .empty-state h4 {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* ============================================
+               TOOLTIP nativo (para botões)
+            ============================================ */
+        [data-tooltip] {
+            position: relative;
+        }
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--gray-800);
+            color: #fff;
+            padding: 0.2rem 0.6rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.7rem;
+            white-space: nowrap;
+            pointer-events: none;
+            font-weight: 500;
+            z-index: 10;
+        }
+        [data-theme="dark"] [data-tooltip]:hover::after {
+            background: var(--gray-200);
+            color: var(--gray-900);
+        }
+    </style>
 </head>
 <body>
-  <div id="app">
-    <header id="navbar"></header>
-    <div class="main-layout">
-      <aside id="sidebar"></aside>
-      <main id="content"></main>
+    <div id="app">
+
+        <!-- TOPBAR -->
+        <header class="topbar" role="banner">
+            <div class="flex gap-2">
+                <button class="btn-icon menu-toggle" aria-label="Abrir menu" onclick="toggleSidebar()">
+                    ☰
+                </button>
+                <div class="topbar-brand">
+                    <span class="logo-icon">⚡</span>
+                    <span>PayFlow</span>
+                </div>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn-icon" data-tooltip="Notificações" aria-label="Notificações" onclick="showToast('info','Nenhuma notificação nova')">
+                    🔔
+                    <span class="badge" id="notif-badge" style="display:none;">0</span>
+                </button>
+                <button class="btn-icon" id="themeToggle" aria-label="Alternar tema" title="Alternar tema">
+                    🌙
+                </button>
+                <button class="btn-icon" data-tooltip="Backup / Restaurar" aria-label="Backup" onclick="openBackupModal()">
+                    💾
+                </button>
+            </div>
+        </header>
+
+        <!-- SIDEBAR -->
+        <nav class="sidebar" id="sidebar" role="navigation" aria-label="Navegação principal">
+            <div class="sidebar-nav">
+                <button class="nav-item active" data-route="#dashboard">
+                    <span class="nav-icon">📊</span> Dashboard
+                </button>
+                <button class="nav-item" data-route="#funcionarios">
+                    <span class="nav-icon">👥</span> Funcionários
+                </button>
+                <button class="nav-item" data-route="#holerite">
+                    <span class="nav-icon">📄</span> Holerite
+                </button>
+                <button class="nav-item" data-route="#ferias">
+                    <span class="nav-icon">🏖️</span> Férias
+                </button>
+                <button class="nav-item" data-route="#decimo-terceiro">
+                    <span class="nav-icon">🎄</span> 13º Salário
+                </button>
+                <button class="nav-item" data-route="#rescisao">
+                    <span class="nav-icon">📋</span> Rescisão
+                </button>
+                <div class="nav-divider"></div>
+                <button class="nav-item" data-route="#configuracoes">
+                    <span class="nav-icon">⚙️</span> Configurações
+                </button>
+                <button class="nav-item" onclick="exportAllData()">
+                    <span class="nav-icon">⬇️</span> Exportar Dados
+                </button>
+            </div>
+        </nav>
+
+        <!-- CONTEÚDO PRINCIPAL -->
+        <main class="main-content" id="content" role="main">
+            <!-- renderizado dinamicamente -->
+        </main>
+
+        <!-- TOAST CONTAINER -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- MODAL CONTAINER -->
+        <div id="modalContainer"></div>
     </div>
-    <div id="modal-container"></div>
-  </div>
-  <script type="module" src="js/app.js"></script>
+
+    <script>
+        // ============================================================
+        //  STORE / PERSISTÊNCIA
+        // ============================================================
+        const STORE_KEYS = {
+            FUNCIONARIOS: 'payflow_funcionarios',
+            HOLERITES: 'payflow_holerites',
+            TABELAS: 'payflow_tabelas',
+            THEME: 'payflow_theme',
+        };
+
+        function initStore() {
+            if (!localStorage.getItem(STORE_KEYS.TABELAS)) {
+                const defaultTables = {
+                    inss: {
+                        "2024": [
+                            { faixa: 1, limiteInferior: 0, limiteSuperior: 1412.00, aliquota: 0.075, deducao: 0 },
+                            { faixa: 2, limiteInferior: 1412.01, limiteSuperior: 2666.68, aliquota: 0.09, deducao: 21.18 },
+                            { faixa: 3, limiteInferior: 2666.69, limiteSuperior: 4000.03, aliquota: 0.12, deducao: 101.18 },
+                            { faixa: 4, limiteInferior: 4000.04, limiteSuperior: 7786.02, aliquota: 0.14, deducao: 181.18 },
+                            { faixa: 5, limiteInferior: 7786.03, limiteSuperior: 999999, aliquota: 0.14, deducao: 181.18 }
+                        ],
+                        "2023": [
+                            { faixa: 1, limiteInferior: 0, limiteSuperior: 1320.00, aliquota: 0.075, deducao: 0 },
+                            { faixa: 2, limiteInferior: 1320.01, limiteSuperior: 2571.29, aliquota: 0.09, deducao: 19.80 },
+                            { faixa: 3, limiteInferior: 2571.30, limiteSuperior: 3856.94, aliquota: 0.12, deducao: 96.94 },
+                            { faixa: 4, limiteInferior: 3856.95, limiteSuperior: 7507.49, aliquota: 0.14, deducao: 174.08 },
+                            { faixa: 5, limiteInferior: 7507.50, limiteSuperior: 999999, aliquota: 0.14, deducao: 174.08 }
+                        ]
+                    },
+                    irrf: {
+                        "2024": [
+                            { faixa: 1, limiteInferior: 0, limiteSuperior: 2259.20, aliquota: 0, deducao: 0,
+                                deducaoDependente: 189.59 },
+                            { faixa: 2, limiteInferior: 2259.21, limiteSuperior: 2826.65, aliquota: 0.075, deducao: 169.44,
+                                deducaoDependente: 189.59 },
+                            { faixa: 3, limiteInferior: 2826.66, limiteSuperior: 3751.05, aliquota: 0.15, deducao: 381.44,
+                                deducaoDependente: 189.59 },
+                            { faixa: 4, limiteInferior: 3751.06, limiteSuperior: 4664.68, aliquota: 0.225, deducao: 662.77,
+                                deducaoDependente: 189.59 },
+                            { faixa: 5, limiteInferior: 4664.69, limiteSuperior: 999999, aliquota: 0.275, deducao: 896.00,
+                                deducaoDependente: 189.59 }
+                        ]
+                    },
+                    fgts: { "2024": 0.08, "2023": 0.08 },
+                    salarioMinimo: { "2024": 1412.00, "2023": 1320.00 }
+                };
+                localStorage.setItem(STORE_KEYS.TABELAS, JSON.stringify(defaultTables));
+            }
+            // Tema
+            const savedTheme = localStorage.getItem(STORE_KEYS.THEME) || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        }
+
+        function getCollection(key) { return JSON.parse(localStorage.getItem(key) || '[]'); }
+
+        function setCollection(key, data) { localStorage.setItem(key, JSON.stringify(data)); }
+
+        function getFuncionarios() { return getCollection(STORE_KEYS.FUNCIONARIOS); }
+
+        function saveFuncionario(func) {
+            const funcs = getFuncionarios();
+            if (!func.id) func.id = crypto.randomUUID();
+            func.salarioBase = (Number(func.valorHora) || 0) * 220;
+            const index = funcs.findIndex(f => f.id === func.id);
+            if (index >= 0) funcs[index] = func;
+            else funcs.push(func);
+            setCollection(STORE_KEYS.FUNCIONARIOS, funcs);
+            return func;
+        }
+
+        function deleteFuncionario(id) {
+            setCollection(STORE_KEYS.FUNCIONARIOS, getFuncionarios().filter(f => f.id !== id));
+        }
+
+        function getHolerites() { return getCollection(STORE_KEYS.HOLERITES); }
+
+        function saveHolerite(h) {
+            const holerites = getHolerites();
+            if (!h.id) h.id = crypto.randomUUID();
+            const index = holerites.findIndex(ho => ho.funcionarioId === h.funcionarioId && ho.mes === h.mes && ho.ano === h
+                .ano);
+            if (index >= 0) holerites[index] = h;
+            else holerites.push(h);
+            setCollection(STORE_KEYS.HOLERITES, holerites);
+            return h;
+        }
+
+        function deleteHolerite(id) {
+            setCollection(STORE_KEYS.HOLERITES, getHolerites().filter(h => h.id !== id));
+        }
+
+        function getTabelas() { return JSON.parse(localStorage.getItem(STORE_KEYS.TABELAS) || '{}'); }
+
+        function updateTabelas(tabelas) { localStorage.setItem(STORE_KEYS.TABELAS, JSON.stringify(tabelas)); }
+
+        // ============================================================
+        //  SERVIÇOS DE CÁLCULO (INSS, IRRF, FGTS, Férias, 13º, Rescisão)
+        // ============================================================
+        const INSSService = {
+            getFaixas(ano) {
+                const tabelas = getTabelas();
+                return tabelas.inss[ano] || tabelas.inss['2024'];
+            },
+            calcular(salario, ano) {
+                const faixas = this.getFaixas(ano);
+                const teto = faixas[faixas.length - 1].limiteSuperior >= 999999 ? faixas[faixas.length - 2].limiteSuperior :
+                    faixas[faixas.length - 1].limiteSuperior;
+                const base = Math.min(salario, teto);
+                let valor = 0;
+                for (const faixa of faixas) {
+                    if (base <= faixa.limiteInferior) break;
+                    const baseFaixa = Math.min(base - faixa.limiteInferior, faixa.limiteSuperior - faixa.limiteInferior);
+                    if (baseFaixa > 0) valor += baseFaixa * faixa.aliquota;
+                }
+                return { valor: Math.round(valor * 100) / 100, aliquotaEfetiva: base > 0 ? valor / base : 0 };
+            }
+        };
+
+        const IRRFService = {
+            getFaixas(ano) {
+                const tabelas = getTabelas();
+                return tabelas.irrf[ano] || tabelas.irrf['2024'];
+            },
+            calcular(rendimentoBruto, inss, dependentes, pensao, ano) {
+                const faixas = this.getFaixas(ano);
+                const deducaoDep = faixas[0].deducaoDependente || 189.59;
+                const base = Math.max(0, rendimentoBruto - inss - (dependentes * deducaoDep) - (pensao || 0));
+                let irrf = 0;
+                for (const faixa of faixas) {
+                    if (base >= faixa.limiteInferior && base <= faixa.limiteSuperior) {
+                        irrf = Math.max(0, base * faixa.aliquota - faixa.deducao);
+                        break;
+                    }
+                }
+                return { valor: Math.round(irrf * 100) / 100, baseIRRF: base };
+            }
+        };
+
+        const FGTSService = {
+            getAliquota(ano) {
+                const tabelas = getTabelas();
+                return (tabelas.fgts && tabelas.fgts[ano]) ? tabelas.fgts[ano] : 0.08;
+            },
+            calcular(salario, ano) {
+                const aliquota = this.getAliquota(ano);
+                return { valor: salario * aliquota, aliquota };
+            }
+        };
+
+        // ============================================================
+        //  CALCULADORA DE HOLERITE
+        // ============================================================
+        class HoleriteCalculator {
+            static calcular(params) {
+                const func = getFuncionarios().find(f => f.id === params.funcionarioId);
+                if (!func) throw new Error('Funcionário não encontrado');
+                const valorHora = Number(func.valorHora);
+                const horasTrab = params.horasTrabalhadas || 0;
+                const salarioBaseProventos = valorHora * horasTrab;
+                const he50 = (params.horasExtras50 || 0) * valorHora * 1.5;
+                const he100 = (params.horasExtras100 || 0) * valorHora * 2;
+                const totalHE = he50 + he100;
+                const diasUteis = HoleriteCalculator.getDiasUteis(params.mes, params.ano);
+                const dsr = diasUteis > 0 ? (totalHE / diasUteis) * (30 - diasUteis) : 0;
+                const proventosBruto = salarioBaseProventos + totalHE + dsr;
+                const inssCalc = INSSService.calcular(proventosBruto, params.ano);
+                const irrfCalc = IRRFService.calcular(proventosBruto, inssCalc.valor, func.dependentes || 0, params
+                    .descontos?.valorPensaoAlimenticia || 0, params.ano);
+                const fgtsCalc = FGTSService.calcular(salarioBaseProventos, params.ano);
+                const desc = params.descontos || {};
+                let vt = 0,
+                    vr = 0,
+                    saude = 0,
+                    pensao = 0,
+                    adiant = 0,
+                    emprest = 0,
+                    outros = 0;
+                if (desc.valeTransporte) vt = Number(desc.valorValeTransporte) || 0;
+                if (desc.valeRefeicao) vr = Number(desc.valorValeRefeicao) || 0;
+                if (desc.planoSaude) saude = Number(desc.valorPlanoSaude) || 0;
+                if (desc.pensaoAlimenticia) pensao = Number(desc.valorPensaoAlimenticia) || 0;
+                if (desc.adiantamentos) adiant = Number(desc.valorAdiantamentos) || 0;
+                if (desc.emprestimos) emprest = Number(desc.valorEmprestimos) || 0;
+                if (desc.outros) outros = Number(desc.valorOutros) || 0;
+                const totalDescontos = inssCalc.valor + irrfCalc.valor + vt + vr + saude + pensao + adiant + emprest + outros;
+                const liquido = proventosBruto - totalDescontos;
+                return {
+                    salarioBase: salarioBaseProventos,
+                    horasExtras50: he50,
+                    horasExtras100: he100,
+                    dsr,
+                    inss: inssCalc.valor,
+                    irrf: irrfCalc.valor,
+                    fgts: fgtsCalc.valor,
+                    valeTransporte: vt,
+                    valeRefeicao: vr,
+                    planoSaude: saude,
+                    pensaoAlimenticia: pensao,
+                    adiantamentos: adiant,
+                    emprestimos: emprest,
+                    outrosDescontos: outros,
+                    totalProventos: Math.round(proventosBruto * 100) / 100,
+                    totalDescontos: Math.round(totalDescontos * 100) / 100,
+                    salarioLiquido: Math.round(liquido * 100) / 100,
+                    baseINSS: proventosBruto,
+                    baseIRRF: irrfCalc.baseIRRF
+                };
+            }
+            static getDiasUteis(mes, ano) {
+                const data = new Date(ano, mes, 0);
+                const totalDias = data.getDate();
+                let uteis = 0;
+                for (let d = 1; d <= totalDias; d++) {
+                    const diaSem = new Date(ano, mes - 1, d).getDay();
+                    if (diaSem !== 0 && diaSem !== 6) uteis++;
+                }
+                return uteis;
+            }
+        }
+
+        // ============================================================
+        //  FÉRIAS
+        // ============================================================
+        class FeriasCalculator {
+            static calcular({ salarioBase, diasFerias, diasVendidos, dependentes, ano }) {
+                const salarioDia = salarioBase / 30;
+                const valorFerias = salarioDia * diasFerias;
+                const adicionalUmTerco = valorFerias / 3;
+                const abonoValor = diasVendidos * salarioDia;
+                const adicionalAbono = diasVendidos > 0 ? abonoValor / 3 : 0;
+                const totalBruto = valorFerias + adicionalUmTerco + abonoValor + adicionalAbono;
+                const baseINSS = valorFerias + adicionalUmTerco;
+                const inssCalc = INSSService.calcular(baseINSS, ano);
+                const irrfCalc = IRRFService.calcular(totalBruto, inssCalc.valor, dependentes, 0, ano);
+                const totalDescontos = inssCalc.valor + irrfCalc.valor;
+                return {
+                    valorFerias,
+                    adicionalUmTerco,
+                    abonoValor,
+                    adicionalAbono,
+                    totalBruto,
+                    inss: inssCalc.valor,
+                    irrf: irrfCalc.valor,
+                    totalLiquido: Math.round((totalBruto - totalDescontos) * 100) / 100
+                };
+            }
+        }
+
+        // ============================================================
+        //  13º SALÁRIO
+        // ============================================================
+        class DecimoTerceiroCalculator {
+            static calcular({ salarioBase, mesesTrabalhados, dependentes, ano, parcela }) {
+                const valorBruto = (salarioBase / 12) * Math.min(mesesTrabalhados, 12);
+                if (parcela === 1) {
+                    const valorParcela = valorBruto / 2;
+                    return { valorBruto, valorParcela, inss: 0, irrf: 0, totalLiquido: valorParcela, parcela: 1 };
+                }
+                const valorParcela = valorBruto / 2;
+                const inssCalc = INSSService.calcular(valorBruto, ano);
+                const irrfCalc = IRRFService.calcular(valorBruto, inssCalc.valor, dependentes, 0, ano);
+                const descontos = inssCalc.valor + irrfCalc.valor;
+                return {
+                    valorBruto,
+                    valorParcela,
+                    inss: inssCalc.valor,
+                    irrf: irrfCalc.valor,
+                    totalLiquido: Math.max(0, Math.round((valorParcela - descontos) * 100) / 100),
+                    parcela: 2
+                };
+            }
+        }
+
+        // ============================================================
+        //  RESCISÃO
+        // ============================================================
+        class RescisaoCalculator {
+            static calcular({ salarioBase, dataAdmissao, dataDesligamento, tipo, avisoPrevio, diasTrabalhadosMes,
+                    dependentes, ano }) {
+                const msTrab = this.mesesTrabalhados(dataAdmissao, dataDesligamento);
+                const saldoSalario = (salarioBase / 30) * diasTrabalhadosMes;
+                let aviso = 0;
+                if ((tipo === 'SEM_JUSTA_CAUSA' || tipo === 'RESCISAO_INDIRETA') && avisoPrevio === 'INDENIZADO') {
+                    const anos = Math.floor(msTrab / 12);
+                    const diasAdicionais = Math.min(anos * 3, 90);
+                    aviso = (salarioBase / 30) * (30 + diasAdicionais);
+                }
+                const decimoProp = (salarioBase / 12) * msTrab;
+                const feriasVencidas = Math.floor(msTrab / 12) * (salarioBase + salarioBase / 3);
+                const feriasProp = ((salarioBase / 12) * (msTrab % 12)) * 1.3333;
+                const fgtsCalc = FGTSService.calcular(salarioBase, ano);
+                const saldoFGTS = fgtsCalc.valor * msTrab;
+                const multaFGTS = (tipo === 'SEM_JUSTA_CAUSA' || tipo === 'RESCISAO_INDIRETA') ? saldoFGTS * 0.4 : 0;
+                const baseINSS = saldoSalario + decimoProp;
+                const inssCalc = INSSService.calcular(baseINSS, ano);
+                const irrfCalc = IRRFService.calcular(baseINSS, inssCalc.valor, dependentes, 0, ano);
+                const totalBruto = saldoSalario + aviso + decimoProp + feriasVencidas + feriasProp;
+                const descontos = inssCalc.valor + irrfCalc.valor;
+                const totalLiquido = totalBruto - descontos + multaFGTS;
+                return {
+                    saldoSalario,
+                    avisoPrevio: aviso,
+                    decimoTerceiroProp: decimoProp,
+                    feriasVencidas,
+                    feriasProporcionais: feriasProp,
+                    multaFGTS,
+                    fgtsSaldo: saldoFGTS,
+                    inss: inssCalc.valor,
+                    irrf: irrfCalc.valor,
+                    totalBruto,
+                    totalDescontos: descontos,
+                    totalLiquido: Math.round(totalLiquido * 100) / 100
+                };
+            }
+            static mesesTrabalhados(ini, fim) {
+                return (fim.getFullYear() - ini.getFullYear()) * 12 + (fim.getMonth() - ini.getMonth()) + 1;
+            }
+        }
+
+        // ============================================================
+        //  TOAST SYSTEM
+        // ============================================================
+        function showToast(type, message, duration = 4000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            toast.innerHTML = `
+            <span>${icons[type] || 'ℹ️'}</span>
+            <span>${message}</span>
+            <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+          `;
+            container.appendChild(toast);
+            setTimeout(() => {
+                if (toast.parentElement) toast.remove();
+            }, duration);
+        }
+
+        // ============================================================
+        //  MODAL SYSTEM
+        // ============================================================
+        function openModal(html) {
+            document.getElementById('modalContainer').innerHTML = `
+            <div class="modal-overlay" onclick="if(event.target===this) closeModal()">
+              <div class="modal">${html}</div>
+            </div>
+          `;
+        }
+
+        function closeModal() {
+            document.getElementById('modalContainer').innerHTML = '';
+        }
+
+        // ============================================================
+        //  SIDEBAR TOGGLE (mobile)
+        // ============================================================
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // ============================================================
+        //  THEME
+        // ============================================================
+        function updateThemeIcon(theme) {
+            const btn = document.getElementById('themeToggle');
+            btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem(STORE_KEYS.THEME, next);
+            updateThemeIcon(next);
+        }
+
+        // ============================================================
+        //  ROTEADOR
+        // ============================================================
+        const routes = {
+            '#dashboard': renderDashboard,
+            '#funcionarios': renderFuncionarios,
+            '#holerite': renderHolerite,
+            '#ferias': renderFerias,
+            '#decimo-terceiro': renderDecimoTerceiro,
+            '#rescisao': renderRescisao,
+            '#configuracoes': renderConfiguracoes,
+        };
+
+        function navigate(hash) {
+            if (!hash || hash === '') hash = '#dashboard';
+            window.location.hash = hash;
+        }
+
+        function router() {
+            const hash = window.location.hash || '#dashboard';
+            const render = routes[hash];
+            if (render) {
+                render();
+                // Marcar item ativo na sidebar
+                document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+                    el.classList.toggle('active', el.dataset.route === hash);
+                });
+            } else {
+                renderDashboard();
+            }
+            // Fechar sidebar mobile
+            document.getElementById('sidebar').classList.remove('open');
+        }
+
+        // ============================================================
+        //  PÁGINAS
+        // ============================================================
+
+        // --- DASHBOARD ---
+        function renderDashboard() {
+            const content = document.getElementById('content');
+            const funcs = getFuncionarios();
+            const holerites = getHolerites();
+
+            const totalFuncs = funcs.length;
+            const totalHols = holerites.length;
+            const totalProventos = holerites.reduce((s, h) => s + (h.totalProventos || 0), 0);
+            const totalDescontos = holerites.reduce((s, h) => s + (h.totalDescontos || 0), 0);
+            const totalLiquido = holerites.reduce((s, h) => s + (h.salarioLiquido || 0), 0);
+
+            // Dados para gráfico (últimos 6 meses)
+            const mesesMap = {};
+            holerites.forEach(h => {
+                const key = `${h.mes}/${h.ano}`;
+                if (!mesesMap[key]) mesesMap[key] = 0;
+                mesesMap[key] += h.salarioLiquido || 0;
+            });
+            const sorted = Object.entries(mesesMap).sort((a, b) => {
+                const [m1, a1] = a[0].split('/');
+                const [m2, a2] = b[0].split('/');
+                return new Date(a1, m1 - 1) - new Date(a2, m2 - 1);
+            });
+            const labels = sorted.map(([k]) => k);
+            const values = sorted.map(([, v]) => v);
+            const maxVal = Math.max(...values, 1);
+
+            content.innerHTML = `
+            <div class="mb-3">
+              <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Dashboard</h1>
+              <p class="text-muted">Visão geral da folha de pagamento</p>
+            </div>
+
+            <div class="grid-4">
+              <div class="stat-card">
+                <div class="stat-label">👥 Funcionários</div>
+                <div class="stat-value">${totalFuncs}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">📄 Holerites</div>
+                <div class="stat-value">${totalHols}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">💰 Total Proventos</div>
+                <div class="stat-value text-success">R$ ${totalProventos.toFixed(2)}</div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">📉 Total Descontos</div>
+                <div class="stat-value text-danger">R$ ${totalDescontos.toFixed(2)}</div>
+              </div>
+            </div>
+
+            <div class="grid-2 mt-4">
+              <div class="card">
+                <div class="card-header">
+                  <span class="card-title">📈 Evolução do Líquido</span>
+                </div>
+                ${sorted.length === 0 ? `
+                  <div class="empty-state">
+                    <div class="empty-icon">📊</div>
+                    <h4>Nenhum holerite gerado</h4>
+                    <p class="text-muted">Gere holerites para ver o gráfico.</p>
+                  </div>
+                ` : `
+                  <div class="chart-bars">
+                    ${sorted.map(([label, value]) => `
+                      <div class="bar-wrap">
+                        <div class="bar-value">R$ ${value.toFixed(0)}</div>
+                        <div class="bar" style="height:${Math.max(4, (value / maxVal) * 120)}px;"></div>
+                        <div class="bar-label">${label}</div>
+                      </div>
+                    `).join('')}
+                  </div>
+                `}
+              </div>
+
+              <div class="card">
+                <div class="card-header">
+                  <span class="card-title">📋 Últimos Holerites</span>
+                </div>
+                ${holerites.length === 0 ? `
+                  <div class="empty-state">
+                    <div class="empty-icon">📄</div>
+                    <h4>Nenhum holerite registrado</h4>
+                  </div>
+                ` : `
+                  <div class="table-wrap">
+                    <table>
+                      <thead><tr><th>Funcionário</th><th>Mês/Ano</th><th>Líquido</th></tr></thead>
+                      <tbody>
+                        ${holerites.slice(-6).reverse().map(h => {
+                          const func = getFuncionarios().find(f => f.id === h.funcionarioId);
+                          return `<tr>
+                            <td>${func?.nome || 'N/A'}</td>
+                            <td>${h.mes}/${h.ano}</td>
+                            <td>R$ ${(h.salarioLiquido || 0).toFixed(2)}</td>
+                          </tr>`;
+                        }).join('')}
+                      </tbody>
+                    </table>
+                  </div>
+                `}
+              </div>
+            </div>
+          `;
+        }
+
+        // --- FUNCIONÁRIOS ---
+        function renderFuncionarios() {
+            const content = document.getElementById('content');
+            content.innerHTML = `
+            <div class="flex flex-wrap justify-between items-center mb-3">
+              <div>
+                <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Funcionários</h1>
+                <p class="text-muted">Gerencie os colaboradores da empresa</p>
+              </div>
+              <button class="btn btn-primary" onclick="abrirFormFuncionario()">+ Novo</button>
+            </div>
+
+            <div class="search-box mb-3" style="max-width:280px;">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="searchFunc" placeholder="Buscar por nome..." />
+            </div>
+
+            <div class="card">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Nome</th><th>Valor Hora</th><th>Salário Base</th><th>Dependentes</th><th>Ações</th></tr></thead>
+                  <tbody id="funcTableBody"></tbody>
+                </table>
+              </div>
+            </div>
+          `;
+            refreshFuncTable();
+
+            document.getElementById('searchFunc').addEventListener('input', refreshFuncTable);
+        }
+
+        function refreshFuncTable() {
+            const tbody = document.getElementById('funcTableBody');
+            if (!tbody) return;
+            const search = (document.getElementById('searchFunc')?.value || '').toLowerCase();
+            const funcs = getFuncionarios().filter(f => f.nome.toLowerCase().includes(search));
+
+            if (funcs.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="5" class="table-empty">Nenhum funcionário encontrado</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = funcs.map(f => `
+            <tr>
+              <td><strong>${f.nome}</strong></td>
+              <td>R$ ${Number(f.valorHora).toFixed(2)}</td>
+              <td>R$ ${Number(f.salarioBase).toFixed(2)}</td>
+              <td>${f.dependentes || 0}</td>
+              <td>
+                <div class="actions">
+                  <button class="btn btn-secondary btn-sm" onclick="abrirFormFuncionario('${f.id}')">✎</button>
+                  <button class="btn btn-danger btn-sm" onclick="excluirFuncionario('${f.id}')">✕</button>
+                </div>
+              </td>
+            </tr>
+          `).join('');
+        }
+
+        function abrirFormFuncionario(id) {
+            const func = id ? getFuncionarios().find(f => f.id === id) : null;
+            const nome = func?.nome || '';
+            const valorHora = func?.valorHora || '';
+            const dependentes = func?.dependentes || 0;
+            const dataAdmissao = func?.dataAdmissao || '';
+
+            openModal(`
+            <div class="modal-header">
+              <h3>${func ? 'Editar' : 'Novo'} Funcionário</h3>
+              <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <form id="funcForm">
+              <input type="hidden" id="funcId" value="${func?.id || ''}" />
+              <div class="form-group">
+                <label>Nome completo</label>
+                <input class="form-control" id="funcNome" value="${nome}" required />
+              </div>
+              <div class="form-group">
+                <label>Valor por hora (R$)</label>
+                <input class="form-control" type="number" step="0.01" id="funcValorHora" value="${valorHora}" required />
+                <div class="form-hint">Salário base = valor hora × 220h</div>
+              </div>
+              <div class="form-group">
+                <label>Nº de dependentes</label>
+                <input class="form-control" type="number" id="funcDependentes" value="${dependentes}" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Data de admissão</label>
+                <input class="form-control" type="date" id="funcAdmissao" value="${dataAdmissao}" />
+              </div>
+              <div class="flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary">Salvar</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+              </div>
+            </form>
+          `);
+
+            document.getElementById('funcForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('funcId').value || undefined;
+                const nome = document.getElementById('funcNome').value.trim();
+                const valorHora = parseFloat(document.getElementById('funcValorHora').value);
+                const dependentes = parseInt(document.getElementById('funcDependentes').value) || 0;
+                const dataAdmissao = document.getElementById('funcAdmissao').value;
+                if (!nome || isNaN(valorHora) || valorHora <= 0) {
+                    showToast('error', 'Preencha todos os campos obrigatórios.');
+                    return;
+                }
+                const novo = { id, nome, valorHora, dependentes, dataAdmissao };
+                saveFuncionario(novo);
+                closeModal();
+                showToast('success', `Funcionário ${id ? 'atualizado' : 'criado'} com sucesso!`);
+                refreshFuncTable();
+                // Re-renderizar páginas que usam select de funcionários
+                // não necessário, pois os selects são populados dinamicamente
+            });
+        }
+
+        function excluirFuncionario(id) {
+            if (!confirm('Excluir este funcionário permanentemente?')) return;
+            deleteFuncionario(id);
+            showToast('warning', 'Funcionário removido.');
+            refreshFuncTable();
+        }
+
+        // --- HOLERITE ---
+        function renderHolerite() {
+            const content = document.getElementById('content');
+            const funcs = getFuncionarios();
+            const now = new Date();
+
+            content.innerHTML = `
+            <div class="mb-3">
+              <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Gerar Holerite</h1>
+              <p class="text-muted">Calcule o contracheque mensal do funcionário</p>
+            </div>
+
+            <div class="grid-2">
+              <div class="card">
+                <form id="holeriteForm">
+                  <div class="form-group">
+                    <label>Funcionário</label>
+                    <select class="form-control" id="hFuncSelect" required>
+                      <option value="">Selecione...</option>
+                      ${funcs.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')}
+                    </select>
+                  </div>
+
+                  <div class="grid-2">
+                    <div class="form-group">
+                      <label>Mês</label>
+                      <input class="form-control" type="number" id="hMes" value="${now.getMonth()+1}" min="1" max="12" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Ano</label>
+                      <input class="form-control" type="number" id="hAno" value="${now.getFullYear()}" required />
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Horas trabalhadas no mês</label>
+                    <input class="form-control" type="number" id="hHoras" value="220" step="0.5" required />
+                  </div>
+
+                  <div class="grid-2">
+                    <div class="form-group">
+                      <label>Horas extras 50%</label>
+                      <input class="form-control" type="number" id="hHE50" value="0" step="0.5" />
+                    </div>
+                    <div class="form-group">
+                      <label>Horas extras 100%</label>
+                      <input class="form-control" type="number" id="hHE100" value="0" step="0.5" />
+                    </div>
+                  </div>
+
+                  <div class="card mt-2" style="border-style:dashed;">
+                    <div class="card-header">
+                      <span class="card-title">Descontos opcionais</span>
+                    </div>
+                    <div class="grid-2">
+                      <div class="form-group">
+                        <div class="form-check">
+                          <input type="checkbox" id="descVT" />
+                          <label style="margin:0;">Vale Transporte</label>
+                        </div>
+                        <input class="form-control" type="number" id="descVTValor" value="0" step="0.01" />
+                      </div>
+                      <div class="form-group">
+                        <div class="form-check">
+                          <input type="checkbox" id="descVR" />
+                          <label style="margin:0;">Vale Refeição</label>
+                        </div>
+                        <input class="form-control" type="number" id="descVRValor" value="0" step="0.01" />
+                      </div>
+                      <div class="form-group">
+                        <div class="form-check">
+                          <input type="checkbox" id="descSaude" />
+                          <label style="margin:0;">Plano de Saúde</label>
+                        </div>
+                        <input class="form-control" type="number" id="descSaudeValor" value="0" step="0.01" />
+                      </div>
+                      <div class="form-group">
+                        <div class="form-check">
+                          <input type="checkbox" id="descPensao" />
+                          <label style="margin:0;">Pensão Alimentícia</label>
+                        </div>
+                        <input class="form-control" type="number" id="descPensaoValor" value="0" step="0.01" />
+                      </div>
+                      <div class="form-group">
+                        <div class="form-check">
+                          <input type="checkbox" id="descAdiant" />
+                          <label style="margin:0;">Adiantamentos</label>
+                        </div>
+                        <input class="form-control" type="number" id="descAdiantValor" value="0" step="0.01" />
+                      </div>
+                      <div class="form-group">
+                        <div class="form-check">
+                          <input type="checkbox" id="descEmprest" />
+                          <label style="margin:0;">Empréstimos</label>
+                        </div>
+                        <input class="form-control" type="number" id="descEmprestValor" value="0" step="0.01" />
+                      </div>
+                      <div class="form-group">
+                        <div class="form-check">
+                          <input type="checkbox" id="descOutros" />
+                          <label style="margin:0;">Outros</label>
+                        </div>
+                        <input class="form-control" type="number" id="descOutrosValor" value="0" step="0.01" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary mt-3">Calcular</button>
+                </form>
+              </div>
+
+              <div class="card" id="hResultado" style="display:none;">
+                <div class="card-header">
+                  <span class="card-title">📄 Holerite</span>
+                  <div class="flex">
+                    <button class="btn btn-secondary btn-sm" id="hSalvar">💾 Salvar</button>
+                    <button class="btn btn-secondary btn-sm" id="hPDF">📄 PDF</button>
+                    <button class="btn btn-secondary btn-sm" id="hExcel">📊 Excel</button>
+                  </div>
+                </div>
+                <div id="hPreview"></div>
+              </div>
+            </div>
+          `;
+
+            // Submit
+            document.getElementById('holeriteForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const funcId = document.getElementById('hFuncSelect').value;
+                if (!funcId) { showToast('error', 'Selecione um funcionário.'); return; }
+                const descontos = {
+                    valeTransporte: document.getElementById('descVT').checked,
+                    valorValeTransporte: parseFloat(document.getElementById('descVTValor').value) || 0,
+                    valeRefeicao: document.getElementById('descVR').checked,
+                    valorValeRefeicao: parseFloat(document.getElementById('descVRValor').value) || 0,
+                    planoSaude: document.getElementById('descSaude').checked,
+                    valorPlanoSaude: parseFloat(document.getElementById('descSaudeValor').value) || 0,
+                    pensaoAlimenticia: document.getElementById('descPensao').checked,
+                    valorPensaoAlimenticia: parseFloat(document.getElementById('descPensaoValor').value) || 0,
+                    adiantamentos: document.getElementById('descAdiant').checked,
+                    valorAdiantamentos: parseFloat(document.getElementById('descAdiantValor').value) || 0,
+                    emprestimos: document.getElementById('descEmprest').checked,
+                    valorEmprestimos: parseFloat(document.getElementById('descEmprestValor').value) || 0,
+                    outros: document.getElementById('descOutros').checked,
+                    valorOutros: parseFloat(document.getElementById('descOutrosValor').value) || 0,
+                };
+                const params = {
+                    funcionarioId: funcId,
+                    mes: parseInt(document.getElementById('hMes').value),
+                    ano: parseInt(document.getElementById('hAno').value),
+                    horasTrabalhadas: parseFloat(document.getElementById('hHoras').value) || 0,
+                    horasExtras50: parseFloat(document.getElementById('hHE50').value) || 0,
+                    horasExtras100: parseFloat(document.getElementById('hHE100').value) || 0,
+                    descontos
+                };
+                try {
+                    const resultado = HoleriteCalculator.calcular(params);
+                    mostrarHolerite(resultado, params);
+                } catch (err) {
+                    showToast('error', err.message);
+                }
+            });
+        }
+
+        function mostrarHolerite(resultado, params) {
+            const container = document.getElementById('hResultado');
+            container.style.display = 'block';
+            const preview = document.getElementById('hPreview');
+
+            const func = getFuncionarios().find(f => f.id === params.funcionarioId);
+            const nome = func?.nome || 'Funcionário';
+
+            preview.innerHTML = `
+            <div class="holerite-preview">
+              <div class="h-header">
+                <strong>${nome}</strong>
+                <span>${params.mes}/${params.ano}</span>
+              </div>
+              <div class="h-proventos">
+                <div class="h-row"><span>Salário Base (${params.horasTrabalhadas}h)</span><span>R$ ${resultado.salarioBase.toFixed(2)}</span></div>
+                ${resultado.horasExtras50 > 0 ? `<div class="h-row"><span>Horas Extras 50%</span><span>R$ ${resultado.horasExtras50.toFixed(2)}</span></div>` : ''}
+                ${resultado.horasExtras100 > 0 ? `<div class="h-row"><span>Horas Extras 100%</span><span>R$ ${resultado.horasExtras100.toFixed(2)}</span></div>` : ''}
+                ${resultado.dsr > 0 ? `<div class="h-row"><span>DSR</span><span>R$ ${resultado.dsr.toFixed(2)}</span></div>` : ''}
+                <div class="h-row" style="font-weight:600;border-top:1px solid var(--border-color);padding-top:0.3rem;">
+                  <span>Total Proventos</span><span>R$ ${resultado.totalProventos.toFixed(2)}</span>
+                </div>
+              </div>
+              <div class="h-descontos" style="margin-top:0.5rem;">
+                <div class="h-row"><span>INSS</span><span>R$ ${resultado.inss.toFixed(2)}</span></div>
+                <div class="h-row"><span>IRRF</span><span>R$ ${resultado.irrf.toFixed(2)}</span></div>
+                ${resultado.valeTransporte > 0 ? `<div class="h-row"><span>Vale Transporte</span><span>R$ ${resultado.valeTransporte.toFixed(2)}</span></div>` : ''}
+                ${resultado.valeRefeicao > 0 ? `<div class="h-row"><span>Vale Refeição</span><span>R$ ${resultado.valeRefeicao.toFixed(2)}</span></div>` : ''}
+                ${resultado.planoSaude > 0 ? `<div class="h-row"><span>Plano de Saúde</span><span>R$ ${resultado.planoSaude.toFixed(2)}</span></div>` : ''}
+                ${resultado.pensaoAlimenticia > 0 ? `<div class="h-row"><span>Pensão Alimentícia</span><span>R$ ${resultado.pensaoAlimenticia.toFixed(2)}</span></div>` : ''}
+                ${resultado.adiantamentos > 0 ? `<div class="h-row"><span>Adiantamentos</span><span>R$ ${resultado.adiantamentos.toFixed(2)}</span></div>` : ''}
+                ${resultado.emprestimos > 0 ? `<div class="h-row"><span>Empréstimos</span><span>R$ ${resultado.emprestimos.toFixed(2)}</span></div>` : ''}
+                ${resultado.outrosDescontos > 0 ? `<div class="h-row"><span>Outros</span><span>R$ ${resultado.outrosDescontos.toFixed(2)}</span></div>` : ''}
+                <div class="h-row" style="font-weight:600;border-top:1px solid var(--border-color);padding-top:0.3rem;">
+                  <span>Total Descontos</span><span>R$ ${resultado.totalDescontos.toFixed(2)}</span>
+                </div>
+              </div>
+              <div class="h-total">
+                <div class="h-row"><span>💰 Salário Líquido</span><span>R$ ${resultado.salarioLiquido.toFixed(2)}</span></div>
+                <div class="h-fgts">FGTS (depósito): R$ ${resultado.fgts.toFixed(2)}</div>
+              </div>
+            </div>
+          `;
+
+            // Ações
+            document.getElementById('hSalvar').onclick = () => {
+                const holerite = { ...resultado, ...params };
+                saveHolerite(holerite);
+                showToast('success', 'Holerite salvo com sucesso!');
+            };
+
+            document.getElementById('hPDF').onclick = () => {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                doc.text(`Holerite - ${nome}`, 10, 10);
+                doc.text(`${params.mes}/${params.ano}`, 10, 18);
+                const rows = [
+                    ['Salário Base', `R$ ${resultado.salarioBase.toFixed(2)}`],
+                    ['Horas Extras', `R$ ${(resultado.horasExtras50 + (resultado.horasExtras100||0)).toFixed(2)}`],
+                    ['INSS', `R$ ${resultado.inss.toFixed(2)}`],
+                    ['IRRF', `R$ ${resultado.irrf.toFixed(2)}`],
+                    ['Líquido', `R$ ${resultado.salarioLiquido.toFixed(2)}`]
+                ];
+                doc.autoTable({
+                    head: [
+                        ['Descrição', 'Valor']
+                    ],
+                    body: rows,
+                    startY: 25,
+                    styles: { fontSize: 10 },
+                });
+                doc.save(`holerite-${nome}-${params.mes}-${params.ano}.pdf`);
+            };
+
+            document.getElementById('hExcel').onclick = () => {
+                const data = [
+                    ['Descrição', 'Valor'],
+                    ['Salário Base', resultado.salarioBase],
+                    ['Horas Extras', resultado.horasExtras50 + (resultado.horasExtras100 || 0)],
+                    ['INSS', resultado.inss],
+                    ['IRRF', resultado.irrf],
+                    ['Líquido', resultado.salarioLiquido]
+                ];
+                const ws = XLSX.utils.aoa_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, 'Holerite');
+                XLSX.writeFile(wb, `holerite-${nome}-${params.mes}-${params.ano}.xlsx`);
+            };
+        }
+
+        // --- FÉRIAS ---
+        function renderFerias() {
+            const content = document.getElementById('content');
+            const funcs = getFuncionarios();
+            content.innerHTML = `
+            <div class="mb-3">
+              <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Cálculo de Férias</h1>
+              <p class="text-muted">Simule o valor das férias e abono pecuniário</p>
+            </div>
+            <div class="grid-2">
+              <div class="card">
+                <form id="feriasForm">
+                  <div class="form-group">
+                    <label>Funcionário</label>
+                    <select class="form-control" id="fFeriasFunc" required>
+                      <option value="">Selecione...</option>
+                      ${funcs.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Dias de férias</label>
+                    <input class="form-control" type="number" id="fDiasFerias" value="30" min="1" max="30" />
+                  </div>
+                  <div class="form-group">
+                    <label>Dias vendidos (abono pecuniário)</label>
+                    <input class="form-control" type="number" id="fDiasVendidos" value="0" min="0" max="10" />
+                  </div>
+                  <button type="submit" class="btn btn-primary">Calcular</button>
+                </form>
+              </div>
+              <div class="card" id="fResultado" style="display:none;"></div>
+            </div>
+          `;
+            document.getElementById('feriasForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('fFeriasFunc').value;
+                if (!id) { showToast('error', 'Selecione um funcionário.'); return; }
+                const func = getFuncionarios().find(f => f.id === id);
+                if (!func) return;
+                const resultado = FeriasCalculator.calcular({
+                    salarioBase: Number(func.salarioBase),
+                    diasFerias: parseInt(document.getElementById('fDiasFerias').value) || 30,
+                    diasVendidos: parseInt(document.getElementById('fDiasVendidos').value) || 0,
+                    dependentes: func.dependentes || 0,
+                    ano: new Date().getFullYear()
+                });
+                const el = document.getElementById('fResultado');
+                el.style.display = 'block';
+                el.innerHTML = `
+                <h3 class="mb-2">Recibo de Férias</h3>
+                <div class="h-row"><span>Férias</span><span>R$ ${resultado.valorFerias.toFixed(2)}</span></div>
+                <div class="h-row"><span>1/3 Constitucional</span><span>R$ ${resultado.adicionalUmTerco.toFixed(2)}</span></div>
+                <div class="h-row"><span>Abono pecuniário</span><span>R$ ${resultado.abonoValor.toFixed(2)}</span></div>
+                <div class="h-row"><span>1/3 do abono</span><span>R$ ${resultado.adicionalAbono.toFixed(2)}</span></div>
+                <div class="h-row" style="font-weight:600;border-top:1px solid var(--border-color);padding-top:0.3rem;">
+                  <span>Total Bruto</span><span>R$ ${resultado.totalBruto.toFixed(2)}</span>
+                </div>
+                <div class="h-row"><span>INSS</span><span>R$ ${resultado.inss.toFixed(2)}</span></div>
+                <div class="h-row"><span>IRRF</span><span>R$ ${resultado.irrf.toFixed(2)}</span></div>
+                <div class="h-total">
+                  <div class="h-row"><span>💰 Líquido</span><span>R$ ${resultado.totalLiquido.toFixed(2)}</span></div>
+                </div>
+              `;
+            });
+        }
+
+        // --- 13º SALÁRIO ---
+        function renderDecimoTerceiro() {
+            const content = document.getElementById('content');
+            const funcs = getFuncionarios();
+            content.innerHTML = `
+            <div class="mb-3">
+              <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Décimo Terceiro Salário</h1>
+              <p class="text-muted">Cálculo da 1ª ou 2ª parcela</p>
+            </div>
+            <div class="grid-2">
+              <div class="card">
+                <form id="dtForm">
+                  <div class="form-group">
+                    <label>Funcionário</label>
+                    <select class="form-control" id="dtFunc" required>
+                      <option value="">Selecione...</option>
+                      ${funcs.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Meses trabalhados no ano</label>
+                    <input class="form-control" type="number" id="dtMeses" value="12" min="1" max="12" />
+                  </div>
+                  <div class="form-group">
+                    <label>Ano</label>
+                    <input class="form-control" type="number" id="dtAno" value="${new Date().getFullYear()}" />
+                  </div>
+                  <div class="form-group">
+                    <label>Parcela</label>
+                    <select class="form-control" id="dtParcela">
+                      <option value="1">1ª Parcela</option>
+                      <option value="2">2ª Parcela</option>
+                    </select>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Calcular</button>
+                </form>
+              </div>
+              <div class="card" id="dtResultado" style="display:none;"></div>
+            </div>
+          `;
+            document.getElementById('dtForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('dtFunc').value;
+                if (!id) { showToast('error', 'Selecione um funcionário.'); return; }
+                const func = getFuncionarios().find(f => f.id === id);
+                if (!func) return;
+                const resultado = DecimoTerceiroCalculator.calcular({
+                    salarioBase: Number(func.salarioBase),
+                    mesesTrabalhados: parseInt(document.getElementById('dtMeses').value) || 12,
+                    dependentes: func.dependentes || 0,
+                    ano: parseInt(document.getElementById('dtAno').value) || new Date().getFullYear(),
+                    parcela: parseInt(document.getElementById('dtParcela').value)
+                });
+                const el = document.getElementById('dtResultado');
+                el.style.display = 'block';
+                el.innerHTML = `
+                <h3 class="mb-2">${resultado.parcela === 1 ? '1ª' : '2ª'} Parcela</h3>
+                <div class="h-row"><span>Valor Bruto</span><span>R$ ${resultado.valorBruto.toFixed(2)}</span></div>
+                <div class="h-row"><span>Valor da parcela</span><span>R$ ${resultado.valorParcela.toFixed(2)}</span></div>
+                ${resultado.parcela === 2 ? `
+                  <div class="h-row"><span>INSS</span><span>R$ ${resultado.inss.toFixed(2)}</span></div>
+                  <div class="h-row"><span>IRRF</span><span>R$ ${resultado.irrf.toFixed(2)}</span></div>
+                ` : ''}
+                <div class="h-total">
+                  <div class="h-row"><span>💰 Líquido</span><span>R$ ${resultado.totalLiquido.toFixed(2)}</span></div>
+                </div>
+              `;
+            });
+        }
+
+        // --- RESCISÃO ---
+        function renderRescisao() {
+            const content = document.getElementById('content');
+            const funcs = getFuncionarios();
+            content.innerHTML = `
+            <div class="mb-3">
+              <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Rescisão Contratual</h1>
+              <p class="text-muted">Calcule os valores devidos na rescisão</p>
+            </div>
+            <div class="grid-2">
+              <div class="card">
+                <form id="rescisaoForm">
+                  <div class="form-group">
+                    <label>Funcionário</label>
+                    <select class="form-control" id="rFunc" required>
+                      <option value="">Selecione...</option>
+                      ${funcs.map(f => `<option value="${f.id}">${f.nome}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Tipo de rescisão</label>
+                    <select class="form-control" id="rTipo">
+                      <option value="SEM_JUSTA_CAUSA">Sem Justa Causa</option>
+                      <option value="COM_JUSTA_CAUSA">Com Justa Causa</option>
+                      <option value="PEDIDO_DEMISSAO">Pedido de Demissão</option>
+                      <option value="RESCISAO_INDIRETA">Rescisão Indireta</option>
+                      <option value="TERMINO_CONTRATO">Término de Contrato</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Aviso prévio</label>
+                    <select class="form-control" id="rAviso">
+                      <option value="TRABALHADO">Trabalhado</option>
+                      <option value="INDENIZADO">Indenizado</option>
+                      <option value="NAO_APLICAVEL">Não Aplicável</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Data de desligamento</label>
+                    <input class="form-control" type="date" id="rDataDeslig" required />
+                  </div>
+                  <div class="form-group">
+                    <label>Dias trabalhados no mês</label>
+                    <input class="form-control" type="number" id="rDiasTrab" value="15" min="1" max="30" />
+                  </div>
+                  <button type="submit" class="btn btn-primary">Calcular</button>
+                </form>
+              </div>
+              <div class="card" id="rResultado" style="display:none;"></div>
+            </div>
+          `;
+            document.getElementById('rescisaoForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const id = document.getElementById('rFunc').value;
+                if (!id) { showToast('error', 'Selecione um funcionário.'); return; }
+                const func = getFuncionarios().find(f => f.id === id);
+                if (!func) return;
+                const dataDeslig = new Date(document.getElementById('rDataDeslig').value);
+                if (isNaN(dataDeslig)) { showToast('error', 'Data inválida.'); return; }
+                const dataAdmissao = func.dataAdmissao ? new Date(func.dataAdmissao) : new Date('2022-01-01');
+                const resultado = RescisaoCalculator.calcular({
+                    salarioBase: Number(func.salarioBase),
+                    dataAdmissao,
+                    dataDesligamento: dataDeslig,
+                    tipo: document.getElementById('rTipo').value,
+                    avisoPrevio: document.getElementById('rAviso').value,
+                    diasTrabalhadosMes: parseInt(document.getElementById('rDiasTrab').value) || 15,
+                    dependentes: func.dependentes || 0,
+                    ano: dataDeslig.getFullYear()
+                });
+                const el = document.getElementById('rResultado');
+                el.style.display = 'block';
+                el.innerHTML = `
+                <h3 class="mb-2">Resumo da Rescisão</h3>
+                <div class="h-row"><span>Saldo de Salário</span><span>R$ ${resultado.saldoSalario.toFixed(2)}</span></div>
+                <div class="h-row"><span>Aviso Prévio</span><span>R$ ${resultado.avisoPrevio.toFixed(2)}</span></div>
+                <div class="h-row"><span>13º Proporcional</span><span>R$ ${resultado.decimoTerceiroProp.toFixed(2)}</span></div>
+                <div class="h-row"><span>Férias Vencidas</span><span>R$ ${resultado.feriasVencidas.toFixed(2)}</span></div>
+                <div class="h-row"><span>Férias Proporcionais</span><span>R$ ${resultado.feriasProporcionais.toFixed(2)}</span></div>
+                <div class="h-row"><span>Multa FGTS (40%)</span><span>R$ ${resultado.multaFGTS.toFixed(2)}</span></div>
+                <div class="h-row" style="border-top:1px solid var(--border-color);padding-top:0.3rem;">
+                  <span>INSS</span><span>R$ ${resultado.inss.toFixed(2)}</span>
+                </div>
+                <div class="h-row"><span>IRRF</span><span>R$ ${resultado.irrf.toFixed(2)}</span></div>
+                <div class="h-total">
+                  <div class="h-row"><span>💰 Total Líquido a Receber</span><span>R$ ${resultado.totalLiquido.toFixed(2)}</span></div>
+                </div>
+                <div class="text-muted" style="font-size:0.75rem;margin-top:0.5rem;">
+                  * Saldo do FGTS (não incluso): R$ ${resultado.fgtsSaldo.toFixed(2)} — permanece na conta vinculada.
+                </div>
+              `;
+            });
+        }
+
+        // --- CONFIGURAÇÕES ---
+        function renderConfiguracoes() {
+            const content = document.getElementById('content');
+            const tabelas = getTabelas();
+            content.innerHTML = `
+            <div class="mb-3">
+              <h1 style="font-size:1.8rem;font-weight:700;letter-spacing:-0.02em;">Configurações</h1>
+              <p class="text-muted">Edite as tabelas de INSS, IRRF e FGTS (formato JSON)</p>
+            </div>
+            <div class="card">
+              <div class="form-group">
+                <label>Tabelas (JSON)</label>
+                <textarea class="json-editor" id="tabelasEditor">${JSON.stringify(tabelas, null, 2)}</textarea>
+                <div class="form-hint">Altere os valores com cuidado. O formato deve ser válido.</div>
+              </div>
+              <div class="flex gap-2">
+                <button class="btn btn-primary" onclick="salvarTabelas()">💾 Salvar</button>
+                <button class="btn btn-secondary" onclick="resetarTabelas()">↺ Restaurar padrão</button>
+              </div>
+            </div>
+            <div class="card mt-3">
+              <div class="card-header">
+                <span class="card-title">📦 Backup dos Dados</span>
+              </div>
+              <div class="flex gap-2 flex-wrap">
+                <button class="btn btn-secondary" onclick="exportAllData()">⬇️ Exportar todos os dados (JSON)</button>
+                <button class="btn btn-secondary" onclick="importAllData()">⬆️ Importar dados (JSON)</button>
+                <button class="btn btn-danger" onclick="limparTodosDados()">🗑️ Limpar todos os dados</button>
+              </div>
+            </div>
+          `;
+        }
+
+        function salvarTabelas() {
+            try {
+                const json = document.getElementById('tabelasEditor').value;
+                const novas = JSON.parse(json);
+                updateTabelas(novas);
+                showToast('success', 'Tabelas atualizadas com sucesso!');
+            } catch (e) {
+                showToast('error', 'JSON inválido. Verifique a sintaxe.');
+            }
+        }
+
+        function resetarTabelas() {
+            if (!confirm('Restaurar tabelas para os valores padrão?')) return;
+            localStorage.removeItem(STORE_KEYS.TABELAS);
+            initStore();
+            renderConfiguracoes();
+            showToast('info', 'Tabelas restauradas.');
+        }
+
+        // --- BACKUP / EXPORT / IMPORT ---
+        function exportAllData() {
+            const data = {
+                funcionarios: getFuncionarios(),
+                holerites: getHolerites(),
+                tabelas: getTabelas(),
+                exportadoEm: new Date().toISOString()
+            };
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `payflow-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('success', 'Dados exportados com sucesso!');
+        }
+
+        function importAllData() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (data.funcionarios) setCollection(STORE_KEYS.FUNCIONARIOS, data.funcionarios);
+                        if (data.holerites) setCollection(STORE_KEYS.HOLERITES, data.holerites);
+                        if (data.tabelas) updateTabelas(data.tabelas);
+                        showToast('success', 'Dados importados com sucesso!');
+                        router();
+                    } catch (err) {
+                        showToast('error', 'Arquivo inválido.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function limparTodosDados() {
+            if (!confirm('ATENÇÃO: Isso apagará TODOS os dados (funcionários, holerites e tabelas). Continuar?')) return;
+            if (!confirm('Digite "SIM" para confirmar.')) return;
+            localStorage.removeItem(STORE_KEYS.FUNCIONARIOS);
+            localStorage.removeItem(STORE_KEYS.HOLERITES);
+            localStorage.removeItem(STORE_KEYS.TABELAS);
+            initStore();
+            showToast('warning', 'Todos os dados foram removidos.');
+            router();
+        }
+
+        // --- BACKUP MODAL (via topbar) ---
+        function openBackupModal() {
+            openModal(`
+            <div class="modal-header">
+              <h3>💾 Backup e Restauração</h3>
+              <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+            <div class="flex flex-col gap-2" style="padding:0.5rem 0;">
+              <button class="btn btn-secondary w-full" onclick="closeModal();exportAllData();">⬇️ Exportar dados (JSON)</button>
+              <button class="btn btn-secondary w-full" onclick="closeModal();importAllData();">⬆️ Importar dados (JSON)</button>
+              <button class="btn btn-danger w-full" onclick="closeModal();limparTodosDados();">🗑️ Limpar todos os dados</button>
+            </div>
+          `);
+        }
+
+        // ============================================================
+        //  INICIALIZAÇÃO
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            initStore();
+
+            // Theme toggle
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+            // Navegação sidebar
+            document.querySelectorAll('.sidebar-nav .nav-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const route = el.dataset.route;
+                    if (route) navigate(route);
+                });
+            });
+
+            // Roteamento
+            window.addEventListener('hashchange', router);
+            router();
+
+            // Notificação de boas-vindas
+            setTimeout(() => showToast('info', 'Bem-vindo ao PayFlow! 👋'), 400);
+        });
+
+        // Expor funções para uso no HTML
+        window.toggleSidebar = toggleSidebar;
+        window.showToast = showToast;
+        window.closeModal = closeModal;
+        window.openModal = openModal;
+        window.abrirFormFuncionario = abrirFormFuncionario;
+        window.excluirFuncionario = excluirFuncionario;
+        window.salvarTabelas = salvarTabelas;
+        window.resetarTabelas = resetarTabelas;
+        window.exportAllData = exportAllData;
+        window.importAllData = importAllData;
+        window.limparTodosDados = limparTodosDados;
+        window.openBackupModal = openBackupModal;
+        window.navigate = navigate;
+    </script>
 </body>
 </html>
